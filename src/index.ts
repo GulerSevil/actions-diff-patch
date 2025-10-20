@@ -12,7 +12,7 @@ function jsonStringLiteral(text: string): string {
 
 async function run(): Promise<void> {
   try {
-    const { token, repository, prNumber, contextPath, baseSha, headSha, batchSize } = getActionInputs();
+    const { token, repository, prNumber, contextPath, baseSha, headSha } = getActionInputs();
 
     const contextJson = contextPath ? loadContext(contextPath) : '{}';
     core.setOutput('CONTEXT', contextJson);
@@ -40,8 +40,6 @@ async function run(): Promise<void> {
 
 
     core.setOutput('TOTAL_FILES', String(filesPrioritized.length));
-    const batchCount = Math.max(1, Math.ceil(filesAll.length / batchSize));
-    core.setOutput('BATCH_COUNT', String(batchCount));
     core.setOutput('CHANGED_FILES', jsonStringLiteral(filesPrioritized.join('\n')));
     core.setOutput('DIFF', jsonStringLiteral(diff || ''));
   } catch (error) {

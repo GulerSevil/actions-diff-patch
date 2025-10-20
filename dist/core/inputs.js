@@ -43,6 +43,5 @@ function getActionInputs() {
     const contextPath = core.getInput('context_path');
     const baseSha = core.getInput('base_sha');
     const headSha = core.getInput('head_sha');
-    const batchSize = Math.max(1, Number(core.getInput('batch_size') || '30'));
-    return { token, repository, prNumber, contextPath, baseSha, headSha, batchSize };
+    return { token, repository, prNumber, contextPath, baseSha, headSha };
 }

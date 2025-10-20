@@ -7,7 +7,6 @@ export interface DiffPatchInputs {
   contextPath: string;
   baseSha: string;
   headSha: string;
-  batchSize: number;
 }
 
 export function getActionInputs(): DiffPatchInputs {
@@ -19,7 +18,7 @@ export function getActionInputs(): DiffPatchInputs {
   const baseSha = core.getInput('base_sha');
   const headSha = core.getInput('head_sha');
 
-  return { token, repository, prNumber, contextPath, baseSha, headSha, batchSize };
+  return { token, repository, prNumber, contextPath, baseSha, headSha };
 }
 
 
