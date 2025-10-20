@@ -1,0 +1,24 @@
+{
+  "name": "action-diff-patch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prepare CONTEXT, FILES, DIFF by fetching PR .diff; fallback to git diff",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ci": "vitest run --reporter=dot"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.11.0",
+    "vitest": "^2.1.1"
+  }
+}
+

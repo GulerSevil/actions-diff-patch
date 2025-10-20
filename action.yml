@@ -1,0 +1,49 @@
+name: action-diff-patch
+description: Prepare CONTEXT, FILES, DIFF by fetching PR .diff; fallback to git diff for non-PR contexts
+author: Sitoo POS
+inputs:
+  token:
+    description: GitHub token for API requests
+    required: true
+  context_path:
+    description: Path to context JSON
+    required: false
+    default: .github/prompts/ios-risk-context.json
+  pr_number:
+    description: Pull request number override (optional)
+    required: false
+    default: ""
+  repository:
+    description: owner/repo override (e.g., org/repo)
+    required: true
+  batch_size:
+    description: Number of files per batch (for iterative AI)
+    required: false
+    default: "30"
+  batch_index:
+    description: 0-based index of the batch to process
+    required: false
+    default: "0"
+  base_sha:
+    description: Fallback base SHA (non-PR contexts)
+    required: false
+    default: ""
+  head_sha:
+    description: Fallback head SHA (non-PR contexts)
+    required: false
+    default: ""
+outputs:
+  CONTEXT:
+    description: Minified JSON object string for static risk context
+  TOTAL_FILES:
+    description: Total changed files count (before batching)
+  CHANGED_FILES:
+    description: All changed files ordered by critical path relevance
+  BATCH_COUNT:
+    description: Number of batches (ceil(TOTAL_FILES / batch_size))
+  DIFF:
+    description: JSON string literal of capped diff patch content
+runs:
+  using: node20
+  main: dist/index.js
+
