@@ -39,10 +39,10 @@ async function run(): Promise<void> {
     const filesPrioritized = prioritizeFiles(filesAll, critical);
 
 
-    core.setOutput('TOTAL_FILES', String(filesAll.length));
+    core.setOutput('TOTAL_FILES', String(filesPrioritized.length));
     const batchCount = Math.max(1, Math.ceil(filesAll.length / batchSize));
     core.setOutput('BATCH_COUNT', String(batchCount));
-    core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
+    core.setOutput('CHANGED_FILES', jsonStringLiteral(filesPrioritized.join('\n')));
     core.setOutput('DIFF', jsonStringLiteral(diff || ''));
   } catch (error) {
     core.setFailed((error as Error).message);
