@@ -44,7 +44,7 @@ function jsonStringLiteral(text) {
 }
 async function run() {
     try {
-        const { token, repository, prNumber, contextPath, baseSha, headSha, batchSize } = (0, inputs_1.getActionInputs)();
+        const { token, repository, prNumber, contextPath, baseSha, headSha } = (0, inputs_1.getActionInputs)();
         const contextJson = contextPath ? (0, context_1.loadContext)(contextPath) : '{}';
         core.setOutput('CONTEXT', contextJson);
         let diff = '';
@@ -68,10 +68,8 @@ async function run() {
         const contextObj = JSON.parse(contextJson);
         const critical = Array.isArray(contextObj.critical_paths) ? contextObj.critical_paths : [];
         const filesPrioritized = (0, diff_1.prioritizeFiles)(filesAll, critical);
-        core.setOutput('TOTAL_FILES', String(filesAll.length));
-        const batchCount = Math.max(1, Math.ceil(filesAll.length / batchSize));
-        core.setOutput('BATCH_COUNT', String(batchCount));
-        core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
+        core.setOutput('TOTAL_FILES', String(filesPrioritized.length));
+        core.setOutput('CHANGED_FILES', jsonStringLiteral(filesPrioritized.join('\n')));
         core.setOutput('DIFF', jsonStringLiteral(diff || ''));
     }
     catch (error) {

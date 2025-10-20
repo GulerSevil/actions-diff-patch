@@ -5,6 +5,5 @@ export interface DiffPatchInputs {
     contextPath: string;
     baseSha: string;
     headSha: string;
-    batchSize: number;
 }
 export declare function getActionInputs(): DiffPatchInputs;
