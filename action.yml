@@ -16,14 +16,6 @@ inputs:
   repository:
     description: owner/repo override (e.g., org/repo)
     required: true
-  batch_size:
-    description: Number of files per batch (for iterative AI)
-    required: false
-    default: "30"
-  batch_index:
-    description: 0-based index of the batch to process
-    required: false
-    default: "0"
   base_sha:
     description: Fallback base SHA (non-PR contexts)
     required: false
@@ -39,8 +31,6 @@ outputs:
     description: Total changed files count (before batching)
   CHANGED_FILES:
     description: All changed files ordered by critical path relevance
-  BATCH_COUNT:
-    description: Number of batches (ceil(TOTAL_FILES / batch_size))
   DIFF:
     description: JSON string literal of capped diff patch content
 runs:
