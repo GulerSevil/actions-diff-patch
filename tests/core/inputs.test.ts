@@ -39,17 +39,14 @@ describe('getActionInputs', () => {
     expect(res.contextPath).toBe('');
     expect(res.baseSha).toBe('');
     expect(res.headSha).toBe('');
-    expect(res.batchSize).toBe(30);
   });
 
-  it('parses numeric pr number and batch size', () => {
+  it('parses numeric pr number', () => {
     mockedCore.__inputs.token = 'tkn';
     mockedCore.__inputs.repository = 'owner/repo';
     mockedCore.__inputs.pr_number = '42';
-    mockedCore.__inputs.batch_size = '10';
     const res = getActionInputs();
     expect(res.prNumber).toBe(42);
-    expect(res.batchSize).toBe(10);
   });
 });
 
