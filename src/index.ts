@@ -19,14 +19,25 @@ async function run(): Promise<void> {
 
     let diff = '';
     if (prNumber) {
-      try {
-        const serverUrl = 'https://github.com';
-        const repoFull = repository;
-        const [owner, repo] = repoFull.split('/', 2);
-        if (!owner || !repo) throw new Error('repository is not provided');
-        diff = await fetchPrDiff(token, prNumber, serverUrl, owner, repo);
-      } catch (e) {
-        core.warning(`Failed to fetch PR .diff via API: ${String(e)}. Falling back to git diff.`);
+      const repoFull = repository;
+      const [owner, repo] = repoFull.split('/', 2);
+      if (!owner || !repo) throw new Error('repository is not provided');
+      // Try API first, then patch-diff host, then web URL
+      const endpoints = [
+        'https://api.github.com',
+        'https://patch-diff.githubusercontent.com',
+        'https://github.com',
+      ];
+      for (const serverUrl of endpoints) {
+        try {
+          diff = await fetchPrDiff(token, prNumber, serverUrl, owner, repo);
+          if (diff) break;
+        } catch (e) {
+          // continue to next endpoint
+        }
+      }
+      if (!diff) {
+        core.warning(`Failed to fetch PR .diff via API/patch endpoints. Falling back to git diff.`);
       }
     }
     if (!diff && baseSha && headSha) {

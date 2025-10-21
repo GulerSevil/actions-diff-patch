@@ -3,7 +3,6 @@ node_modules/
 
 # Build outputs (keep dist committed for GitHub Actions runtime)
 lib/
-# dist/
 
 # Logs
 npm-debug.log*
