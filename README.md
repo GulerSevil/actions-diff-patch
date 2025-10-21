@@ -7,7 +7,6 @@ Prepare CONTEXT, FILES, and DIFF for downstream automation by fetching a PR .dif
 - Non‑PR mode: Falls back to `git diff <base_sha> <head_sha>`
 - Extracts changed files from the diff
 - Optional prioritization via "critical paths" in the provided context JSON
-- Batching support via `batch_size`
 - Outputs minified context JSON and diff as JSON string literals for safe downstream consumption
 
 ## Inputs
@@ -17,7 +16,6 @@ Prepare CONTEXT, FILES, and DIFF for downstream automation by fetching a PR .dif
 - `context_path` (optional): Path to a JSON file with optional `critical_paths` array
 - `base_sha` (optional): Base commit SHA for non‑PR mode
 - `head_sha` (optional): Head commit SHA for non‑PR mode
-- `batch_size` (optional): Number of files per batch (default `30`)
 
 
 ## Outputs
@@ -31,26 +29,24 @@ Prepare CONTEXT, FILES, and DIFF for downstream automation by fetching a PR .dif
 ### PR mode (HTTPS .diff)
 ```yaml
 - name: Prepare diff/context
-  uses: <owner>/<repo>@<ref>
+  uses: GulerSevil/actions-diff-patch@<ref>
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
     repository: ${{ github.repository }}
     pr_number: ${{ github.event.pull_request.number }}
     context_path: .github/prompts/ios-risk-context.json
-    batch_size: 30
 ```
 
 ### Non‑PR mode (git diff SHAs)
 ```yaml
 - name: Prepare diff/context
-  uses: <owner>/<repo>@<ref>
+  uses: GulerSevil/actions-diff-patch@<ref>
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
     repository: ${{ github.repository }}
     base_sha: ${{ github.sha }}^     # example: previous commit
     head_sha: ${{ github.sha }}
     context_path: .github/prompts/ios-risk-context.json
-    batch_size: 30
 ```
 
 ### Consuming outputs
