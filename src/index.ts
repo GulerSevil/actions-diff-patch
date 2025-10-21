@@ -3,7 +3,7 @@ import { writeText } from './core/fsio';
 import { fetchPrDiff } from './adapters/http';
 import { gitDiff } from './adapters/git';
 import { loadContext } from './core/context';
-import { extractChangedFilesFromDiff, prioritizeFiles } from './core/diff';
+import { extractChangedFilesFromDiff } from './core/diff';
 import { getActionInputs } from './core/inputs';
 
 function jsonStringLiteral(text: string): string {
@@ -46,12 +46,9 @@ async function run(): Promise<void> {
     
     const filesAll = extractChangedFilesFromDiff(diff);
     const contextObj = JSON.parse(contextJson);
-    const critical: string[] = Array.isArray(contextObj.critical_paths) ? contextObj.critical_paths : [];
-    const filesPrioritized = prioritizeFiles(filesAll, critical);
 
-
-    core.setOutput('TOTAL_FILES', String(filesPrioritized.length));
-    core.setOutput('CHANGED_FILES', jsonStringLiteral(filesPrioritized.join('\n')));
+    core.setOutput('TOTAL_FILES', String(filesAll.length));
+    core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
     core.setOutput('DIFF', jsonStringLiteral(diff || ''));
   } catch (error) {
     core.setFailed((error as Error).message);

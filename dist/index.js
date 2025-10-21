@@ -25795,7 +25795,6 @@ function loadContext(path) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.extractChangedFilesFromDiff = extractChangedFilesFromDiff;
 exports.prioritizeAndCapFiles = prioritizeAndCapFiles;
-exports.prioritizeFiles = prioritizeFiles;
 exports.filterDiffByFiles = filterDiffByFiles;
 function extractChangedFilesFromDiff(diff) {
     const files = new Set();
@@ -25810,11 +25809,6 @@ function prioritizeAndCapFiles(paths, critical) {
     const scored = paths.map((p) => ({ p, score: critical.some((c) => p.includes(c)) ? 1 : 0 }));
     scored.sort((a, b) => b.score - a.score);
     return scored.slice(0, 200).map((s) => s.p);
-}
-function prioritizeFiles(paths, critical) {
-    const scored = paths.map((p) => ({ p, score: critical.some((c) => p.includes(c)) ? 1 : 0 }));
-    scored.sort((a, b) => b.score - a.score);
-    return scored.map((s) => s.p);
 }
 function filterDiffByFiles(diff, files) {
     if (!diff || files.length === 0)
@@ -25976,10 +25970,8 @@ async function run() {
         }
         const filesAll = (0, diff_1.extractChangedFilesFromDiff)(diff);
         const contextObj = JSON.parse(contextJson);
-        const critical = Array.isArray(contextObj.critical_paths) ? contextObj.critical_paths : [];
-        const filesPrioritized = (0, diff_1.prioritizeFiles)(filesAll, critical);
-        core.setOutput('TOTAL_FILES', String(filesPrioritized.length));
-        core.setOutput('CHANGED_FILES', jsonStringLiteral(filesPrioritized.join('\n')));
+        core.setOutput('TOTAL_FILES', String(filesAll.length));
+        core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
         core.setOutput('DIFF', jsonStringLiteral(diff || ''));
     }
     catch (error) {

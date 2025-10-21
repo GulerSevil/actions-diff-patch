@@ -13,12 +13,6 @@ export function prioritizeAndCapFiles(paths: string[], critical: string[]): stri
   return scored.slice(0, 200).map((s) => s.p);
 }
 
-export function prioritizeFiles(paths: string[], critical: string[]): string[] {
-  const scored = paths.map((p) => ({ p, score: critical.some((c) => p.includes(c)) ? 1 : 0 }));
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map((s) => s.p);
-}
-
 export function filterDiffByFiles(diff: string, files: string[]): string {
   if (!diff || files.length === 0) return '';
   const fileSet = new Set(files);
