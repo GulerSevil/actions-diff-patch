@@ -94,6 +94,21 @@ async function run(): Promise<void> {
     core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
     core.setOutput('DIFF', jsonStringLiteral(diff || ''));
 
+    // Also materialize DIFF and CHANGED_FILES as files for safe downstream consumption
+    try {
+      const workspace = process.env.GITHUB_WORKSPACE || process.cwd();
+      const outDir = path.join(workspace, '.ai');
+      fs.mkdirSync(outDir, { recursive: true });
+      const diffFile = path.join(outDir, 'diff.all.patch');
+      const filesFile = path.join(outDir, 'files.all.txt');
+      fs.writeFileSync(diffFile, diff || '', 'utf-8');
+      fs.writeFileSync(filesFile, filesAll.join('\n'), 'utf-8');
+      core.setOutput('DIFF_FILE', diffFile);
+      core.setOutput('CHANGED_FILES_FILE', filesFile);
+    } catch (e) {
+      core.warning(`Failed to write DIFF/FILES to workspace: ${(e as Error).message}`);
+    }
+
     if (!inputs.chunkingEnabled) {
       return;
     }

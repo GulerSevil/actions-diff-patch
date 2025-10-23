@@ -32591,6 +32591,8 @@ const context_1 = __nccwpck_require__(5491);
 const diff_1 = __nccwpck_require__(6444);
 const github_1 = __nccwpck_require__(3228);
 const child_process_1 = __nccwpck_require__(5317);
+const fs = __importStar(__nccwpck_require__(9896));
+const path = __importStar(__nccwpck_require__(6928));
 const inputs_1 = __nccwpck_require__(1209);
 const globs_1 = __nccwpck_require__(7288);
 const chunking_1 = __nccwpck_require__(2972);
@@ -32668,6 +32670,21 @@ async function run() {
         core.setOutput('TOTAL_FILES', String(filesAll.length));
         core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
         core.setOutput('DIFF', jsonStringLiteral(diff || ''));
+        // Also materialize DIFF and CHANGED_FILES as files for safe downstream consumption
+        try {
+            const workspace = process.env.GITHUB_WORKSPACE || process.cwd();
+            const outDir = path.join(workspace, '.ai');
+            fs.mkdirSync(outDir, { recursive: true });
+            const diffFile = path.join(outDir, 'diff.all.patch');
+            const filesFile = path.join(outDir, 'files.all.txt');
+            fs.writeFileSync(diffFile, diff || '', 'utf-8');
+            fs.writeFileSync(filesFile, filesAll.join('\n'), 'utf-8');
+            core.setOutput('DIFF_FILE', diffFile);
+            core.setOutput('CHANGED_FILES_FILE', filesFile);
+        }
+        catch (e) {
+            core.warning(`Failed to write DIFF/FILES to workspace: ${e.message}`);
+        }
         if (!inputs.chunkingEnabled) {
             return;
         }

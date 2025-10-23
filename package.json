@@ -2,7 +2,7 @@
   "name": "action-diff-patch",
   "version": "1.0.0",
   "private": true,
-  "description": "Prepare CONTEXT, FILES, DIFF by fetching PR .diff; fallback to git diff",
+  "description": "Prepare CONTEXT, FILES, DIFF preferring local git diff; fallback to PR .diff",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

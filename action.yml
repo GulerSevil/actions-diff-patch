@@ -65,6 +65,10 @@ outputs:
     description: "JSON array of chunk IDs as strings"
   CHUNK_MANIFEST_DIR:
     description: "Directory path containing files.<id>.txt and diff.<id>.patch"
+  DIFF_FILE:
+    description: "Absolute path to the full unified diff file written to .ai"
+  CHANGED_FILES_FILE:
+    description: "Absolute path to the newline-joined changed files list in .ai"
  
 runs:
   using: node20

@@ -1,19 +1,19 @@
 # action-diff-patch
 
-Prepare CONTEXT, FILES, and DIFF for downstream automation by fetching a PR .diff from GitHub or falling back to a plain `git diff` between SHAs. Returns prioritized file lists and batch metadata as action outputs.
+Prepare CONTEXT, FILES, and DIFF for downstream automation by preferring a local `git diff` between PR base/head (or provided SHAs), and falling back to fetching a PR `.diff` over HTTPS when necessary. Returns prioritized file lists and batch metadata as action outputs.
 
 Now supports optional adaptive chunking of changed files for large diffs.
 
 ## Features
-- PR mode: Fetches `pull/<pr_number>.diff` via HTTPS using a token
-- Non‑PR mode: Falls back to `git diff <base_sha> <head_sha>`
+- PR mode: Prefer local git diff between PR base/head; fallback to HTTPS `.diff`
+- Non‑PR mode: Use `git diff <base_sha> <head_sha>`
 - Extracts changed files from the diff
 - Optional chunk prioritization via `critical_paths_json` glob patterns
-- Outputs minified context JSON and diff as JSON string literals for safe downstream consumption
+- Outputs minified context JSON; `CHANGED_FILES` and `DIFF` as JSON string literals; also writes file outputs under `.ai/`
 
 ## Inputs
-- `token` (required): GitHub token for API requests
-- `repository` (required): `owner/repo` (override; e.g. `org/repo`)
+- `token` (optional; required in PR mode): GitHub token for API requests
+- `repository` (optional): `owner/repo` override (defaults to `GITHUB_REPOSITORY`)
 - `pr_number` (optional): PR number override; if empty, falls back to SHAs
 - `context_path` (optional): Path to a JSON file with optional `critical_paths` array
 - `base_sha` (optional): Base commit SHA for non‑PR mode
@@ -31,8 +31,10 @@ Now supports optional adaptive chunking of changed files for large diffs.
 ## Outputs
 - `CONTEXT`: Minified JSON string of the provided context file (or `{}`)
 - `TOTAL_FILES`: Total changed files count
-- `CHANGED_FILES`: Newline‑joined list of changed files
+- `CHANGED_FILES`: JSON string literal of the newline‑joined list of changed files
 - `DIFF`: JSON string literal of the full diff content (may be large)
+- `DIFF_FILE`: Absolute path to the full unified diff file (e.g., `.ai/diff.all.patch`)
+- `CHANGED_FILES_FILE`: Absolute path to the newline‑joined changed files file (e.g., `.ai/files.all.txt`)
 
 When chunking is enabled, additional outputs are provided:
 - `CHUNK_COUNT`: Number of generated chunks
@@ -98,6 +100,10 @@ When chunking is enabled, additional outputs are provided:
     echo "CHANGED_FILES=${{ steps.prep.outputs.CHANGED_FILES }}"
     echo "CONTEXT=${{ steps.prep.outputs.CONTEXT }}"
     # DIFF may be large; treat carefully
+    echo "DIFF_FILE=${{ steps.prep.outputs.DIFF_FILE }}"
+    echo "CHANGED_FILES_FILE=${{ steps.prep.outputs.CHANGED_FILES_FILE }}"
+    # Example: consume file outputs safely
+    head -n 100 "${{ steps.prep.outputs.DIFF_FILE }}" || true
 ```
 
 ## Critical paths
