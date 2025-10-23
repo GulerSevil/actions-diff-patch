@@ -1,68 +1,75 @@
-name: PR Risk Analysis
+name: AI review by chunks
 
 on:
   pull_request:
-    types: [opened, synchronize]
 
 permissions:
   contents: read
-  pull-requests: write
-  models: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true    
+  pull-requests: read
+  models: read  
 
 jobs:
-  risk_analysis:
+  prep:
+    runs-on: ubuntu-latest
+    outputs:
+      chunk_count: ${{ steps.diff.outputs.CHUNK_COUNT }}
+      chunk_ids_json: ${{ steps.diff.outputs.CHUNK_IDS_JSON }}
+      manifest_dir: ${{ steps.diff.outputs.CHUNK_MANIFEST_DIR }}
+      diff_all: ${{ steps.diff.outputs.DIFF }}  # optional fallback
+      changed_files_all: ${{ steps.diff.outputs.CHANGED_FILES }}
+      file_list: ${{ steps.diff.outputs.CHANGED_FILES_FILE }}
+      diff_file:      ${{ steps.diff.outputs.DIFF_FILE }}
+      context_json: ${{ steps.diff.outputs.CONTEXT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        uses: GulerSevil/actions-diff-patch@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          pr_number: ${{ github.event.pull_request.number }}
+          chunking_enabled: "false"
+          max_diff_lines_per_chunk: "0"
+          exclude_globs: "**/*.png,**/*.jpg,**/*.xcworkspace/**,**/Pods/**"
+          critical_paths_json: '["**/Payments/**","**/Checkout/**","**/OfflineDB/**","**/Printing/**","**/Sync/**","**/Auth/**"]'
+
+
+  # Removed chunked job for simplicity
+
+  ai:
+    needs: prep
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
-      - name: Calculate delta between base and head of PR
-        uses: GulerSevil/actions-diff-patch@v1.3
-        id: prepare_diff
+      - uses: actions/checkout@v4
         with:
-            pr_number: ${{ github.event.pull_request.number }}
-            repository: ${{ github.repository }}
-            token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: PR Risk Analysis
-        id: risk_analysis
-        uses: GulerSevil/action-gh-model-prompt@v1
-        with:
-            model: gpt-4o
-            prompt_path: .github/prompts/ios-risk-unified.prompt
-            placeholders_json: >
-              {
-                "MODE":"pr",
-                "DIFF":${{ steps.prepare_diff.outputs.DIFF }},
-                "FILE_LIST":${{ steps.prepare_diff.outputs.CHANGED_FILES }},
-                "CONTEXT":${{ steps.prepare_diff.outputs.CONTEXT }}
-              }
-            token: ${{ secrets.GITHUB_TOKEN }}
-            response_format: text
-            batch_size: 15
-
-      - name: Save report file
+      - name: Prepare inputs as files
+        shell: bash
         run: |
-            printf "%s\n" '${{ steps.risk_analysis.outputs.report }}' > risk-report.md
-        
-      - name: Upload report artifact
-        id: upload_report
+          mkdir -p .ai
+          printf '%s' "${{ needs.prep.outputs.diff_all }}"          > .ai/diff.all.patch
+          printf '%s' "${{ needs.prep.outputs.changed_files_all }}" > .ai/files.all.txt
+
+      - name: AI inference (single)
+        id: inference
+        uses: actions/ai-inference@v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          model: openai/gpt-4o
+          prompt-file: .github/prompts/ios-risk-unified.prompt.yml
+          input: |
+            MODE: pr
+            CONTEXT: ${{ needs.prep.outputs.context_json }}
+          file_input: |
+            FILE_LIST: .ai/files.all.txt
+            DIFF:      .ai/diff.all.patch
+
+      - name: Upload response
         uses: actions/upload-artifact@v4
         with:
-            name: risk-report
-            path: risk-report.md          
+          name: ai-response
+          path: ${{ steps.inference.outputs.response-file }}
 
-      - name: Comment & gate
-        uses: actions/github-script@v7
-        with:
-              script: |
-                const reasons = ${{ toJson(steps.risk_analysis.outputs.message_content) }};
-                const url = `${{ steps.upload_report.outputs['artifact-url'] }}`;
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number,
-                  body: `**AI iOS PR Risk:** ${reasons} \n\n [View risk report](${url})`
-                });
-               
