@@ -11,5 +11,3 @@ export function writeBytes(path: string, bytes: Buffer): void {
 export function readText(path: string): string {
   return readFileSync(path, 'utf-8');
 }
-
-

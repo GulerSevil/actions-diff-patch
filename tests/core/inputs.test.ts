@@ -16,7 +16,7 @@ vi.mock('@actions/core', () => {
 });
 
 import * as core from '@actions/core';
-import { getActionInputs } from '../../src/core/inputs';
+import { getActionInputs } from '../../src/core/config/inputs';
 
 const mockedCore = core as unknown as { __inputs: Record<string, string> } & typeof core;
 

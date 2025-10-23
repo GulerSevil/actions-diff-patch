@@ -9,5 +9,3 @@ export function loadContext(path: string): string {
     return '{}';
   }
 }
-
-

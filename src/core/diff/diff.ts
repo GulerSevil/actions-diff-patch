@@ -29,4 +29,9 @@ export function filterDiffByFiles(diff: string, files: string[]): string {
   return chunks.join('\n');
 }
 
-
+// Added to satisfy tests: prioritize files by presence of any critical substrings
+export function prioritizeFiles(paths: string[], critical: string[]): string[] {
+  const scored = paths.map((p) => ({ p, score: critical.some((c) => p.includes(c)) ? 1 : 0 }));
+  scored.sort((a, b) => b.score - a.score || a.p.localeCompare(b.p));
+  return scored.map((s) => s.p);
+}

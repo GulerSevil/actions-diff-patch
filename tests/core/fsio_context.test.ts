@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { writeText, writeBytes, readText } from '../../src/core/fsio';
-import { loadContext } from '../../src/core/context';
+import { writeText, writeBytes, readText } from '../../src/core/io/fsio';
+import { loadContext } from '../../src/core/io/context';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';

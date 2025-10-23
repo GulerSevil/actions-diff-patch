@@ -1,17 +1,23 @@
 name: action-diff-patch
-description: Prepare CONTEXT, FILES, DIFF by fetching PR .diff; fallback to git diff for non-PR contexts
+description: Prepare CONTEXT, FILES, DIFF preferring local git diff when SHAs are available; fallback to PR .diff over HTTP
 author: Sitoo POS
 inputs:
   token:
-    description: GitHub token for API requests
-    required: true
+    description: GitHub token for API requests (required for PR mode)
+    required: false
+    default: ""
   pr_number:
     description: Pull request number override (optional)
     required: false
     default: ""
   repository:
-    description: owner/repo override (e.g., org/repo)
-    required: true
+    description: owner/repo override (e.g., org/repo). Defaults to GITHUB_REPOSITORY
+    required: false
+    default: ""
+  context_path:
+    description: Optional path to a JSON context file
+    required: false
+    default: ""
   base_sha:
     description: Fallback base SHA (non-PR contexts)
     required: false
@@ -20,15 +26,46 @@ inputs:
     description: Fallback head SHA (non-PR contexts)
     required: false
     default: ""
+  chunking_enabled:
+    description: "Enable adaptive chunking of changed files (bin-pack by diff size)"
+    required: false
+    default: "false"
+  max_diff_lines_per_chunk:
+    description: "Target lines-of-diff budget per chunk (added+deleted)"
+    required: false
+    default: "1500"
+  max_files_per_chunk:
+    description: "Cap number of files per chunk (optional)"
+    required: false
+    default: ""
+  include_globs:
+    description: "Comma-separated globs to include (e.g., *.swift,*.m)"
+    required: false
+    default: ""
+  exclude_globs:
+    description: "Comma-separated globs to exclude"
+    required: false
+    default: ""
+  critical_paths_json:
+    description: "JSON array of globs to prioritize into earlier chunks"
+    required: false
+    default: ""
 outputs:
   CONTEXT:
     description: Minified JSON object string for static risk context
   TOTAL_FILES:
     description: Total changed files count (before batching)
   CHANGED_FILES:
-    description: All changed files ordered by critical path relevance
+    description: Newline-joined list of changed files
   DIFF:
-    description: JSON string literal of capped diff patch content
+    description: JSON string literal of full unified diff content
+  CHUNK_COUNT:
+    description: "Number of chunks when chunking is enabled"
+  CHUNK_IDS_JSON:
+    description: "JSON array of chunk IDs as strings"
+  CHUNK_MANIFEST_DIR:
+    description: "Directory path containing files.<id>.txt and diff.<id>.patch"
+ 
 runs:
   using: node20
   main: dist/index.js
