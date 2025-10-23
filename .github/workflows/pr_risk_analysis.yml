@@ -49,9 +49,20 @@ jobs:
       - name: Prepare inputs as files
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p .ai
-          printf '%s' "${{ needs.prep.outputs.diff_all }}"          > .ai/diff.all.patch
-          printf '%s' "${{ needs.prep.outputs.changed_files_all }}" > .ai/files.all.txt
+          # Prefer pre-generated files from the prep job to avoid shell interpolation issues
+          if [ -n "${{ needs.prep.outputs.diff_file }}" ] && [ -f "${{ needs.prep.outputs.diff_file }}" ]; then
+            cp "${{ needs.prep.outputs.diff_file }}" .ai/diff.all.patch
+          else
+            # Fallback: write inline content safely (single-quoted to prevent $ expansion)
+            printf '%s' '${{ needs.prep.outputs.diff_all }}' > .ai/diff.all.patch
+          fi
+          if [ -n "${{ needs.prep.outputs.file_list }}" ] && [ -f "${{ needs.prep.outputs.file_list }}" ]; then
+            cp "${{ needs.prep.outputs.file_list }}" .ai/files.all.txt
+          else
+            printf '%s\n' '${{ needs.prep.outputs.changed_files_all }}' > .ai/files.all.txt
+          fi
 
       - name: AI inference (single)
         id: inference
