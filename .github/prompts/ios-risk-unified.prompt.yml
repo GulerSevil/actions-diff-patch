@@ -98,8 +98,8 @@ messages:
 
   - role: user
     content: |-
-      MODE={{MODE}}
-      CONTEXT={{CONTEXT}}
+      MODE: {{MODE}}
+      CONTEXT: {{CONTEXT}}
+      FILE_LIST:  {{FILE_LIST}}
 
-      FILE_LIST: [attached file input]
-      DIFF: [attached file input]
+      DIFF: {{DIFF}}
