@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractChangedFilesFromDiff, prioritizeFiles, prioritizeAndCapFiles, filterDiffByFiles } from '../../src/core/diff';
+import { extractChangedFilesFromDiff, prioritizeFiles, prioritizeAndCapFiles, filterDiffByFiles } from '../../src/core/diff/diff';
 
 const sampleDiff = [
   'diff --git a/README.md b/README.md',
