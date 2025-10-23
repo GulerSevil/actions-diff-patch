@@ -101,8 +101,5 @@ messages:
       MODE={{MODE}}
       CONTEXT={{CONTEXT}}
 
-      FILE_LIST:
-      {{FILE_LIST}}
-
-      DIFF:
-      {{DIFF}}
+      FILE_LIST: [attached file input]
+      DIFF: [attached file input]
