@@ -35,6 +35,15 @@ jobs:
           exclude_globs: "**/*.png,**/*.jpg,**/*.xcworkspace/**,**/Pods/**"
           critical_paths_json: '["**/Payments/**","**/Checkout/**","**/OfflineDB/**","**/Printing/**","**/Sync/**","**/Auth/**"]'
 
+      - name: Upload AI inputs (diff, files)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-inputs
+          if-no-files-found: error
+          path: |
+            ${{ steps.diff.outputs.DIFF_FILE }}
+            ${{ steps.diff.outputs.CHANGED_FILES_FILE }}
+
 
   # Removed chunked job for simplicity
 
@@ -46,23 +55,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Prepare inputs as files
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .ai
-          # Prefer pre-generated files from the prep job to avoid shell interpolation issues
-          if [ -n "${{ needs.prep.outputs.diff_file }}" ] && [ -f "${{ needs.prep.outputs.diff_file }}" ]; then
-            cp "${{ needs.prep.outputs.diff_file }}" .ai/diff.all.patch
-          else
-            # Fallback: write inline content safely (single-quoted to prevent $ expansion)
-            printf '%s' '${{ needs.prep.outputs.diff_all }}' > .ai/diff.all.patch
-          fi
-          if [ -n "${{ needs.prep.outputs.file_list }}" ] && [ -f "${{ needs.prep.outputs.file_list }}" ]; then
-            cp "${{ needs.prep.outputs.file_list }}" .ai/files.all.txt
-          else
-            printf '%s\n' '${{ needs.prep.outputs.changed_files_all }}' > .ai/files.all.txt
-          fi
+      - name: Download AI inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: ai-inputs
+          path: .ai
 
       - name: AI inference (single)
         id: inference
