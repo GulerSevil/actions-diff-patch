@@ -32599,6 +32599,13 @@ const chunking_1 = __nccwpck_require__(2972);
 function jsonStringLiteral(text) {
     return JSON.stringify(text);
 }
+function truncateMiddle(text, maxLen = 2000) {
+    if (text.length <= maxLen)
+        return text;
+    const headLen = Math.floor(maxLen * 0.6);
+    const tailLen = maxLen - headLen - 10; // reserve for ellipsis marker
+    return `${text.slice(0, headLen)}...[truncated ${text.length - maxLen} chars]...${text.slice(-tailLen)}`;
+}
 async function run() {
     try {
         const inputs = (0, inputs_1.getActionInputs)();
@@ -32668,8 +32675,10 @@ async function run() {
         }
         const filesAll = (0, diff_1.extractChangedFilesFromDiff)(diff);
         core.setOutput('TOTAL_FILES', String(filesAll.length));
-        core.setOutput('CHANGED_FILES', jsonStringLiteral(filesAll.join('\n')));
-        core.setOutput('DIFF', jsonStringLiteral(diff || ''));
+        const changedFilesOutput = jsonStringLiteral(filesAll.join('\n'));
+        const diffOutput = jsonStringLiteral(diff || '');
+        core.setOutput('CHANGED_FILES', changedFilesOutput);
+        core.setOutput('DIFF', diffOutput);
         // Also materialize DIFF and CHANGED_FILES as files for safe downstream consumption
         try {
             const workspace = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -32681,6 +32690,14 @@ async function run() {
             fs.writeFileSync(filesFile, filesAll.join('\n'), 'utf-8');
             core.setOutput('DIFF_FILE', diffFile);
             core.setOutput('CHANGED_FILES_FILE', filesFile);
+            // Print all currently available outputs (truncate very large strings)
+            core.info('--- action-diff-patch outputs (base) ---');
+            core.info(`CONTEXT: ${truncateMiddle(contextJson)}`);
+            core.info(`TOTAL_FILES: ${filesAll.length}`);
+            core.info(`CHANGED_FILES: ${truncateMiddle(changedFilesOutput)}`);
+            core.info(`DIFF: ${truncateMiddle(diffOutput)}`);
+            core.info(`DIFF_FILE: ${diffFile}`);
+            core.info(`CHANGED_FILES_FILE: ${filesFile}`);
         }
         catch (e) {
             core.warning(`Failed to write DIFF/FILES to workspace: ${e.message}`);
@@ -32718,8 +32735,14 @@ async function run() {
         const { manifestDir } = (0, chunking_1.writeChunkManifests)(chunks, resolvedBase, resolvedHead);
         const chunkIds = chunks.map((c) => String(c.id));
         core.setOutput('CHUNK_COUNT', String(chunks.length));
-        core.setOutput('CHUNK_IDS_JSON', JSON.stringify(chunkIds));
+        const chunkIdsJson = JSON.stringify(chunkIds);
+        core.setOutput('CHUNK_IDS_JSON', chunkIdsJson);
         core.setOutput('CHUNK_MANIFEST_DIR', manifestDir);
+        // Print chunking outputs as well
+        core.info('--- action-diff-patch outputs (chunking) ---');
+        core.info(`CHUNK_COUNT: ${chunks.length}`);
+        core.info(`CHUNK_IDS_JSON: ${truncateMiddle(chunkIdsJson)}`);
+        core.info(`CHUNK_MANIFEST_DIR: ${manifestDir}`);
     }
     catch (error) {
         core.setFailed(error.message);

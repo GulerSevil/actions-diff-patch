@@ -92,18 +92,17 @@ When chunking is enabled, additional outputs are provided:
 
 ### Consuming outputs
 ```yaml
-- name: Print summary
-  id: prep
+- name: Print all outputs
   run: |
-    echo "TOTAL_FILES=${{ steps.prep.outputs.TOTAL_FILES }}"
-    echo "CHUNK_COUNT=${{ steps.prep.outputs.CHUNK_COUNT }}"
-    echo "CHANGED_FILES=${{ steps.prep.outputs.CHANGED_FILES }}"
     echo "CONTEXT=${{ steps.prep.outputs.CONTEXT }}"
-    # DIFF may be large; treat carefully
+    echo "TOTAL_FILES=${{ steps.prep.outputs.TOTAL_FILES }}"
+    echo "CHANGED_FILES=${{ steps.prep.outputs.CHANGED_FILES }}"
+    echo "DIFF=${{ steps.prep.outputs.DIFF }}"  # may be large
     echo "DIFF_FILE=${{ steps.prep.outputs.DIFF_FILE }}"
     echo "CHANGED_FILES_FILE=${{ steps.prep.outputs.CHANGED_FILES_FILE }}"
-    # Example: consume file outputs safely
-    head -n 100 "${{ steps.prep.outputs.DIFF_FILE }}" || true
+    echo "CHUNK_COUNT=${{ steps.prep.outputs.CHUNK_COUNT }}"
+    echo "CHUNK_IDS_JSON=${{ steps.prep.outputs.CHUNK_IDS_JSON }}"
+    echo "CHUNK_MANIFEST_DIR=${{ steps.prep.outputs.CHUNK_MANIFEST_DIR }}"
 ```
 
 ## Critical paths
